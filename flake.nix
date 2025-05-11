@@ -13,13 +13,28 @@
           inherit system;
         };
       in {
-        formatter = pkgs.nixpkgs-fmt;
-      }) // {
-      nixosConfigurations.raspberrypi = nixpkgs.lib.nixosSystem {
-        system = "aarch64-linux";
-        modules = [
-          ./hosts/raspberrypi.nix
+        # Basis-Konfiguration für das NixOS-System
+        system = nixpkgs.lib.nixosSystem {
+          system = "aarch64-linux";
+          kernelPackages = pkgs.linux-aarch64.raspberrypi;
+          initrd = true;
+          modules = [
+            ./hosts/raspberrypi.nix
+          ];
+        };
+
+        # Zusätzliche Pakete und Dienste
+        packages = with pkgs; [
+          nixpkgs-fmt
+          networkmanager
+          samba
+          rsync
         ];
-      };
+
+        # UEFI-Unterstützung aktivieren
+        boot.loader.grub.enable = true;
+        boot.loader.grub.version = 2;
+        boot.loader.efiSupport = true;
+      });
     };
 }
